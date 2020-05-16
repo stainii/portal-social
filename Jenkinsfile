@@ -1,7 +1,7 @@
 pipeline {
   agent {
     docker {
-      image 'stainii/portal-web-app-base'
+      image 'stainii/portal-web-app-base:jdk-14'
       args '-v /root/.m2:/root/.m2'
     }
 
