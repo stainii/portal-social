@@ -1,0 +1,35 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: Stijn Hooft
+      changes:
+        - createTable:
+            tableName: person
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: image_name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: recurring_task_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: latest_updates
+                  type: text
+        - createSequence:
+            incrementBy: 50
+            sequenceName: person_id_sequence
