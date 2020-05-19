@@ -3,17 +3,25 @@ package be.stijnhooft.portal.social.services;
 import be.stijnhooft.portal.social.dtos.ExecutionDto;
 import be.stijnhooft.portal.social.dtos.RecurringTaskDto;
 import be.stijnhooft.portal.social.dtos.Source;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import java.net.URI;
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;
@@ -21,6 +29,7 @@ import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @ActiveProfiles("local")
+@ExtendWith(MockitoExtension.class)
 class RecurringTasksServiceTest {
 
     @Autowired
@@ -28,6 +37,45 @@ class RecurringTasksServiceTest {
 
     @MockBean
     private RestTemplate restTemplate;
+
+    @MockBean
+    private DiscoveryClient discoveryClient;
+
+    @BeforeEach
+    public void mockDiscoverClient() {
+        when(discoveryClient.getInstances(RecurringTasksService.SERVICE_ID))
+                .thenReturn(List.of(new ServiceInstance() {
+                    @Override
+                    public String getServiceId() {
+                        return null;
+                    }
+
+                    @Override
+                    public String getHost() {
+                        return null;
+                    }
+
+                    @Override
+                    public int getPort() {
+                        return 0;
+                    }
+
+                    @Override
+                    public boolean isSecure() {
+                        return false;
+                    }
+
+                    @Override
+                    public URI getUri() {
+                        return URI.create("http://localhost:2011");
+                    }
+
+                    @Override
+                    public Map<String, String> getMetadata() {
+                        return null;
+                    }
+                }));
+    }
 
     @Test
     void findByIdWhenFound() {

@@ -3,9 +3,10 @@ package be.stijnhooft.portal.social.services;
 
 import be.stijnhooft.portal.social.dtos.ImageDto;
 import be.stijnhooft.portal.social.dtos.ImageLabel;
+import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpEntity;
@@ -27,22 +28,21 @@ import java.util.*;
 @Slf4j
 public class ImageService {
 
-    @Value("${portal-image.uri}")
-    private String portalImageUri;
-
+    public static final String SERVICE_ID = "image";
+    public static final String API_CONTEXT_ROOT = "api/";
+    private final DiscoveryClient discoveryClient;
     private final RestTemplate restTemplate;
 
-    public ImageService(RestTemplate restTemplate) {
+    public ImageService(DiscoveryClient discoveryClient, RestTemplate restTemplate) {
+        this.discoveryClient = discoveryClient;
         this.restTemplate = restTemplate;
-    }
-
-    public String getImageUrl(String imageName) {
-        return portalImageUri + "retrieve/" + imageName;
     }
 
     public void delete(@NonNull String imageName) {
         try {
-            restTemplate.delete(portalImageUri + "remove/" + imageName);
+            var url = findPortalImageUrl() + API_CONTEXT_ROOT + "remove/" + imageName;
+            log.info("Deleting image at " + url);
+            restTemplate.delete(url);
         } catch (HttpClientErrorException.NotFound ex)   {
             log.warn("Image microservice returns 404 when deleting image {}. Image might already have been deleted.", imageName);
         }
@@ -61,7 +61,10 @@ public class ImageService {
         requestBody.add("image", image);
         requestBody.add("transformationDefinitions", transformationDefinitions);
 
-        ResponseEntity<List<ImageDto>> response = restTemplate.exchange(getTransformUrl(), HttpMethod.POST, new HttpEntity<>(requestBody), new ParameterizedTypeReference<>() {
+        var url = findPortalImageUrl() + API_CONTEXT_ROOT + "transform/";
+        log.info("Creating thumbnail at " + url);
+
+        ResponseEntity<List<ImageDto>> response = restTemplate.exchange(url, HttpMethod.POST, new HttpEntity<>(requestBody), new ParameterizedTypeReference<>() {
         });
 
         return Optional.ofNullable(response.getBody()) // avoiding a NullPointerException. If body is null, orElseThrow will be triggered.
@@ -78,15 +81,19 @@ public class ImageService {
         delete(imageName);
     }
 
-    private String getTransformUrl() {
-        return portalImageUri + "transform";
-    }
-
     private byte[] decodeBase64Image(@NonNull String imageContent) {
         var beginIndex = imageContent.indexOf(",");
         var data = imageContent.substring(beginIndex + 1);
         return Base64.getDecoder().decode(data);
     }
 
+    private String findPortalImageUrl() {
+        List<ServiceInstance> portalImageInstances = discoveryClient.getInstances(SERVICE_ID);
+        if (portalImageInstances != null && !portalImageInstances.isEmpty()) {
+            return portalImageInstances.get(0).getUri().toString() + "/";
+        } else {
+            throw new IllegalStateException("No instance of portal-image registered with Eureka");
+        }
+    }
 
 }

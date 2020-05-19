@@ -47,3 +47,19 @@ Therefore, make sure you have the following config in your Maven `settings.xml`;
 ````
 * docker.io points to the Docker Hub.
 * portal-nexus-releases points to my personal Nexus (see `<distributionManagement>` in the project's `pom.xml`)
+
+### Running with Docker
+When running with Docker, you need to provide required environment variables.
+
+| Name | Example value | Description | Required? |
+| ---- | ------------- | ----------- | -------- |
+| POSTGRES_URL | jdbc:postgresql://localhost:5433/portal-housagotchi | JDBC url to connect to the database | required
+| POSTGRES_USERNAME | my-username | Username to log in to the database | required
+| POSTGRES_PASSWORD | secret | Password to log in to the database | required
+| RABBITMQ_HOST | rabbitmq | Host where RabbitMQ is located | required
+| RABBITMQ_PORT | 5672 | Port of RabbitMQ| required
+| RABBITMQ_USERNAME | my-username | Username to log in to RabbitMQ | required
+| RABBITMQ_PASSWORD | secret | Password to log in to RabbitMQ | required
+| EUREKA_SERVICE_URL | http://portal-eureka:8761/eureka | Url of Eureka | required
+| JAVA_OPTS_SOCIAL | -Xmx400m -Xms400m | Java opts you want to pass to the JVM | optional
+

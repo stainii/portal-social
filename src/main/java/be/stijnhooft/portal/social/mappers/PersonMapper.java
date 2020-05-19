@@ -10,17 +10,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class PersonMapper {
 
-    private final ImageService imageService;
-
-    public PersonMapper(ImageService imageService) {
-        this.imageService = imageService;
-    }
-
     public PersonDto mapToDto(@NonNull Person person, @NonNull RecurringTaskDto recurringTask) {
         return PersonDto.builder()
                 .id(person.getId())
                 .name(person.getName())
-                .imageName(imageService.getImageUrl(person.getImageName()))
+                .imageName(person.getImageName())
                 .minNumberOfDaysBetweenContacts(recurringTask.getMinNumberOfDaysBetweenExecutions())
                 .maxNumberOfDaysBetweenContacts(recurringTask.getMaxNumberOfDaysBetweenExecutions())
                 .lastContact(recurringTask.getLastExecution())

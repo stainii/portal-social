@@ -22,15 +22,11 @@ class PersonMapperTest {
     @InjectMocks
     private PersonMapper personMapper;
 
-    @Mock
-    private ImageService imageService;
-
     @Test
     public void mapToDtoWhenSuccess() {
         var personId = 1L;
         var recurringTaskId = 2L;
         var imageName = "my_image.png";
-        var imagePath = "http://localhost:3000/api/retrieve/my_image.png";
         var minNumberOfDaysBetweenExecutions = 10;
         var maxNumberOfDaysBetweenExecutions = 20;
         var lastExecution = LocalDate.now();
@@ -52,13 +48,11 @@ class PersonMapperTest {
                 .lastExecution(lastExecution)
                 .build();
 
-        when(imageService.getImageUrl(imageName)).thenReturn(imagePath);
-
         var result = personMapper.mapToDto(person, recurringTask);
 
         assertEquals(personId, result.getId());
         assertEquals(name, result.getName());
-        assertEquals(imagePath, result.getImageName());
+        assertEquals(imageName, result.getImageName());
         assertEquals(minNumberOfDaysBetweenExecutions, result.getMinNumberOfDaysBetweenContacts());
         assertEquals(maxNumberOfDaysBetweenExecutions, result.getMaxNumberOfDaysBetweenContacts());
         assertEquals(lastExecution, result.getLastContact());
