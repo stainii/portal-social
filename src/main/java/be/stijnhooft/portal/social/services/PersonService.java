@@ -10,7 +10,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -57,23 +59,23 @@ public class PersonService {
             throw new IllegalArgumentException("Person with name " + personDto.getName() + " already exists");
         }
 
-        String imageName = createImage(personDto);
+        Map<ImageLabel, String> images = createThumbnails(personDto);
 
         // create recurring task
         RecurringTaskDto createdRecurringTask;
         try {
             createdRecurringTask = createRecurringTask(personDto);
         } catch (RuntimeException e) {
-            imageService.rollbackCreateImage(imageName);
+            imageService.rollbackCreateImages(images.values());
             throw e;
         }
 
         // persist in database
         try {
-            var person = createPerson(personDto, imageName, createdRecurringTask.getId());
+            var person = createPerson(personDto, images, createdRecurringTask.getId());
             return enrichAndMap(person, createdRecurringTask);
         } catch (RuntimeException e) {
-            imageService.rollbackCreateImage(imageName);
+            imageService.rollbackCreateImages(images.values());
             recurringTasksService.rollbackCreateRecurringTask(createdRecurringTask.getId());
             throw e;
         }
@@ -90,7 +92,7 @@ public class PersonService {
 
         // calculate the updated entities
         Person updatedPerson = personMapper
-                .mapToModel(updatedPersonDto, originalPerson.getRecurringTaskId(), originalPerson.getImageName());
+                .mapToModel(updatedPersonDto, originalPerson.getRecurringTaskId(), originalPerson.getColorThumbnail(), originalPerson.getSepiaThumbnail());
 
         RecurringTaskDto updatedRecurringTask = recurringTaskDtoMapper
                 .map(updatedPersonDto)
@@ -99,14 +101,15 @@ public class PersonService {
                 .build();
 
         // keeping information about how far we got, in case something goes wrong
-        String newImageName = null;
+        HashMap<ImageLabel, String> newImages = null;
         boolean recurringTaskUpdated = false;
 
         try {
             // creating a new image now, when everything goes right we'll remove the old image
             if (isNotEmpty(updatedPersonDto.getNewImageContent())) {
-                newImageName = imageService.createThumbnail(updatedPersonDto.getNewImageContent());
-                updatedPerson.setImageName(newImageName);
+                newImages = imageService.createThumbnails(updatedPersonDto.getNewImageContent());
+                updatedPerson.setColorThumbnail(newImages.get(ImageLabel.COLOR_THUMBNAIL));
+                updatedPerson.setSepiaThumbnail(newImages.get(ImageLabel.SEPIA_THUMBNAIL));
             }
 
             // update recurring task
@@ -120,8 +123,8 @@ public class PersonService {
                 savePersonHelper.saveAndFlushAndCommit(updatedPerson);
             }
         } catch (RuntimeException e) {  // something went wrong, let's revert
-            if (newImageName != null) {
-                imageService.rollbackCreateImage(newImageName);
+            if (newImages != null) {
+                imageService.rollbackCreateImages(newImages.values());
             }
             if (recurringTaskUpdated) {
                 recurringTasksService.rollbackUpdateRecurringTask(originalRecurringTaskDto);
@@ -131,8 +134,8 @@ public class PersonService {
 
         // when everything has gone right, clean up
         try {
-            if (newImageName != null) {
-                imageService.delete(originalPerson.getImageName());
+            if (newImages != null) {
+                imageService.delete(originalPerson.getColorThumbnail(), originalPerson.getSepiaThumbnail());
             }
         } catch (RuntimeException e) {
             log.warn("Something went wrong cleaning up old image after update", e);
@@ -146,7 +149,7 @@ public class PersonService {
                 .map(person -> {
                     personRepository.deleteById(id);
                     recurringTasksService.deleteById(person.getRecurringTaskId());
-                    imageService.delete(person.getImageName());
+                    imageService.delete(person.getColorThumbnail(), person.getSepiaThumbnail());
                     return DeleteResult.DELETED;
                 }).orElseGet(() -> DeleteResult.DOES_NOT_EXIST);
     }
@@ -181,15 +184,16 @@ public class PersonService {
         return recurringTasksService.create(recurringTaskDto);
     }
 
-    private String createImage(@NonNull PersonDto personDto) {
+    private HashMap<ImageLabel, String> createThumbnails(@NonNull PersonDto personDto) {
         var imageContent = personDto.getNewImageContent();
-        return imageService.createThumbnail(imageContent);
+        return imageService.createThumbnails(imageContent);
     }
 
-    private Person createPerson(@NonNull PersonDto personDto, @NonNull String imageName, long recurringTaskId) {
+    private Person createPerson(@NonNull PersonDto personDto, @NonNull Map<ImageLabel, String> thumbnails, long recurringTaskId) {
         var person = Person.builder()
                 .name(personDto.getName())
-                .imageName(imageName)
+                .colorThumbnail(thumbnails.get(ImageLabel.COLOR_THUMBNAIL))
+                .sepiaThumbnail(thumbnails.get(ImageLabel.SEPIA_THUMBNAIL))
                 .recurringTaskId(recurringTaskId)
                 .build();
         return savePersonHelper.saveAndFlushAndCommit(person);

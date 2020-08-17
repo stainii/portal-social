@@ -20,7 +20,9 @@ public class PersonDto {
      */
     private String newImageContent;
 
-    private String imageName;
+    private String colorThumbnail;
+
+    private String sepiaThumbnail;
 
     @NotNull
     private Integer minNumberOfDaysBetweenContacts;

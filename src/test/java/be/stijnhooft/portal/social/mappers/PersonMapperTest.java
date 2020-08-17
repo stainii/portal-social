@@ -26,7 +26,8 @@ class PersonMapperTest {
     public void mapToDtoWhenSuccess() {
         var personId = 1L;
         var recurringTaskId = 2L;
-        var imageName = "my_image.png";
+        var colorThumbnail = "my_image.png";
+        var sepiaThumbnail = "sepia.png";
         var minNumberOfDaysBetweenExecutions = 10;
         var maxNumberOfDaysBetweenExecutions = 20;
         var lastExecution = LocalDate.now();
@@ -36,7 +37,8 @@ class PersonMapperTest {
         var person = Person.builder()
                 .id(personId)
                 .name(name)
-                .imageName(imageName)
+                .colorThumbnail(colorThumbnail)
+                .sepiaThumbnail(sepiaThumbnail)
                 .recurringTaskId(recurringTaskId)
                 .latestUpdates(latestUpdates)
                 .build();
@@ -52,7 +54,8 @@ class PersonMapperTest {
 
         assertEquals(personId, result.getId());
         assertEquals(name, result.getName());
-        assertEquals(imageName, result.getImageName());
+        assertEquals(colorThumbnail, result.getColorThumbnail());
+        assertEquals(sepiaThumbnail, result.getSepiaThumbnail());
         assertEquals(minNumberOfDaysBetweenExecutions, result.getMinNumberOfDaysBetweenContacts());
         assertEquals(maxNumberOfDaysBetweenExecutions, result.getMaxNumberOfDaysBetweenContacts());
         assertEquals(lastExecution, result.getLastContact());
@@ -75,7 +78,8 @@ class PersonMapperTest {
     public void mapToDtoWhenRecurringTaskIsNull() {
         var person = Person.builder()
                 .id(1L)
-                .imageName("my_image.png")
+                .colorThumbnail("my_image.png")
+                .sepiaThumbnail("my_image2.png")
                 .recurringTaskId(2L)
                 .build();
 
@@ -87,7 +91,8 @@ class PersonMapperTest {
         var personId = 1L;
         var recurringTaskId = 2L;
         var originalImageName = "my_image.png";
-        var imageNameDto = "http://localhost:3000/api/retrieve/my_image.png";
+        var colorThumbnail = "123.png";
+        var sepiaThumbnail = "456.png";
         var minNumberOfDaysBetweenExecutions = 10;
         var maxNumberOfDaysBetweenExecutions = 20;
         var lastExecution = LocalDate.now();
@@ -97,7 +102,8 @@ class PersonMapperTest {
         var personDto = PersonDto.builder()
                 .id(personId)
                 .name(name)
-                .imageName(imageNameDto)
+                .colorThumbnail(colorThumbnail)
+                .sepiaThumbnail(sepiaThumbnail)
                 .newImageContent("my_new_image_data")
                 .minNumberOfDaysBetweenContacts(minNumberOfDaysBetweenExecutions)
                 .maxNumberOfDaysBetweenContacts(maxNumberOfDaysBetweenExecutions)
@@ -105,18 +111,19 @@ class PersonMapperTest {
                 .latestUpdates(latestUpdates)
                 .build();
 
-        var result = personMapper.mapToModel(personDto, recurringTaskId, originalImageName);
+        var result = personMapper.mapToModel(personDto, recurringTaskId, colorThumbnail, sepiaThumbnail);
         assertEquals(personId, result.getId());
         assertEquals(personId, result.getId());
         assertEquals(name, result.getName());
-        assertEquals(originalImageName, result.getImageName());
+        assertEquals(colorThumbnail, result.getColorThumbnail());
+        assertEquals(sepiaThumbnail, result.getSepiaThumbnail());
         assertEquals(recurringTaskId, result.getRecurringTaskId());
         assertEquals(latestUpdates, result.getLatestUpdates());
     }
 
     @Test
     public void mapToModelWhenPersonDtoIsNull() {
-        assertThrows(NullPointerException.class, () -> personMapper.mapToModel(null, 1, "bla.png"));
+        assertThrows(NullPointerException.class, () -> personMapper.mapToModel(null, 1, "bla.png", "bla2.png"));
     }
 
 }

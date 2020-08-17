@@ -14,7 +14,8 @@ public class PersonMapper {
         return PersonDto.builder()
                 .id(person.getId())
                 .name(person.getName())
-                .imageName(person.getImageName())
+                .colorThumbnail(person.getColorThumbnail())
+                .sepiaThumbnail(person.getSepiaThumbnail())
                 .minNumberOfDaysBetweenContacts(recurringTask.getMinNumberOfDaysBetweenExecutions())
                 .maxNumberOfDaysBetweenContacts(recurringTask.getMaxNumberOfDaysBetweenExecutions())
                 .lastContact(recurringTask.getLastExecution())
@@ -22,11 +23,12 @@ public class PersonMapper {
                 .build();
     }
 
-    public Person mapToModel(@NonNull PersonDto personDto, long recurringTaskId, String imageName) {
+    public Person mapToModel(@NonNull PersonDto personDto, long recurringTaskId, String colorThumbnailName, String sepiaThumbnailName) {
         return Person.builder()
                 .id(personDto.getId())
                 .name(personDto.getName())
-                .imageName(imageName)
+                .colorThumbnail(colorThumbnailName)
+                .sepiaThumbnail(sepiaThumbnailName)
                 .recurringTaskId(recurringTaskId)
                 .latestUpdates(personDto.getLatestUpdates())
                 .build();

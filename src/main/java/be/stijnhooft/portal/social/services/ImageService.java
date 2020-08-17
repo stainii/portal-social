@@ -38,6 +38,14 @@ public class ImageService {
         this.restTemplate = restTemplate;
     }
 
+    public void delete(@NonNull Collection<String> imageNames) {
+        imageNames.forEach(this::delete);
+    }
+
+    public void delete(@NonNull String... imageNames) {
+        delete(Arrays.asList(imageNames));
+    }
+
     public void delete(@NonNull String imageName) {
         try {
             var url = findPortalImageUrl() + API_CONTEXT_ROOT + "remove/" + imageName;
@@ -48,14 +56,14 @@ public class ImageService {
         }
     }
 
-    public String createThumbnail(@NonNull String imageContent) {
+    public HashMap<ImageLabel, String> createThumbnails(@NonNull String imageContent) {
         ByteArrayResource image = new ByteArrayResource(decodeBase64Image(imageContent)) {
             @Override
             public String getFilename() {
                 return UUID.randomUUID().toString();
             }
         };
-        String transformationDefinitions = String.format("[{ \"label\": \"%s\", \"transformations\": [{ \"name\": \"resize\", \"width\": \"300\", \"height\": \"300\", \"crop\": true}] }]", ImageLabel.THUMBNAIL.getValue());
+        String transformationDefinitions = String.format("[{ \"label\": \"%s\", \"transformations\": [{ \"name\": \"resize\", \"width\": \"300\", \"height\": \"300\", \"crop\": true}] }, { \"label\": \"%s\", \"transformations\": [{ \"name\": \"resize\", \"width\": \"300\", \"height\": \"300\", \"crop\": true}, {\"name\": \"sepia\"}] }]", ImageLabel.COLOR_THUMBNAIL.getValue(), ImageLabel.SEPIA_THUMBNAIL.getValue());
 
         MultiValueMap<String, Object> requestBody = new LinkedMultiValueMap<>();
         requestBody.add("image", image);
@@ -67,18 +75,25 @@ public class ImageService {
         ResponseEntity<List<ImageDto>> response = restTemplate.exchange(url, HttpMethod.POST, new HttpEntity<>(requestBody), new ParameterizedTypeReference<>() {
         });
 
+        HashMap<ImageLabel, String> result = new HashMap<>();
+        result.put(ImageLabel.COLOR_THUMBNAIL, parseImageUrlFromResponse(response, ImageLabel.COLOR_THUMBNAIL));
+        result.put(ImageLabel.SEPIA_THUMBNAIL, parseImageUrlFromResponse(response, ImageLabel.SEPIA_THUMBNAIL));
+        return result;
+    }
+
+    private String parseImageUrlFromResponse(ResponseEntity<List<ImageDto>> response, ImageLabel imageLabel) {
         return Optional.ofNullable(response.getBody()) // avoiding a NullPointerException. If body is null, orElseThrow will be triggered.
                 .stream()
                 .flatMap(Collection::stream) // transform Stream<List<ImageDto>> to Stream<ImageDto>
-                .filter(imageDto -> imageDto.getLabel().equals(ImageLabel.THUMBNAIL.getValue()))
+                .filter(imageDto -> imageDto.getLabel().equals(imageLabel.getValue()))
                 .findFirst()
                 .map(ImageDto::getName)
                 .orElseThrow(() -> new IllegalArgumentException(String.format("Could not find thumbnail in response of image: %s", response.getBody())));
     }
 
-    public void rollbackCreateImage(String imageName) {
-        log.warn("Creating or updating person failed. Reverting creation of image " + imageName);
-        delete(imageName);
+    public void rollbackCreateImages(Collection<String> images) {
+        log.warn("Creating or updating person failed. Reverting creation of images " + images);
+        delete(images);
     }
 
     private byte[] decodeBase64Image(@NonNull String imageContent) {

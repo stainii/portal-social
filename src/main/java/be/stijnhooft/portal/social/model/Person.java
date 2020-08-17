@@ -28,8 +28,12 @@ public class Person {
     private String name;
 
     @NotNull
-    @Column(name = "image_name")
-    private String imageName;
+    @Column(name = "color_thumbnail")
+    private String colorThumbnail;
+
+    @NotNull
+    @Column(name = "sepia_thumbnail")
+    private String sepiaThumbnail;
 
     @Column(name = "recurring_task_id")
     private Long recurringTaskId;

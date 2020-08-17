@@ -3,7 +3,8 @@ package be.stijnhooft.portal.social.dtos;
 public enum ImageLabel {
 
     ORIGINAL("original"),
-    THUMBNAIL("thumbnail");
+    COLOR_THUMBNAIL("thumbnail"),
+    SEPIA_THUMBNAIL("sepia");
 
     private final String value;
 

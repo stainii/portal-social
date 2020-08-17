@@ -33,3 +33,17 @@ databaseChangeLog:
         - createSequence:
             incrementBy: 50
             sequenceName: person_id_sequence
+  - changeSet:
+      id: 2
+      author: Stijn Hooft
+      changes:
+        - renameColumn:
+            tableName:  person
+            oldColumnName:  image_name
+            newColumnName:  color_thumbnail
+        - addColumn:
+            tableName: person
+            columns:
+              - column:
+                  name: sepia_thumbnail
+                  type: varchar(255)
