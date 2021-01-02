@@ -1,12 +1,12 @@
 package be.stijnhooft.portal.social.services;
 
 
-import be.stijnhooft.portal.social.dtos.ImageDto;
+import be.stijnhooft.portal.model.image.ImageDto;
 import be.stijnhooft.portal.social.dtos.ImageLabel;
-import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.client.discovery.DiscoveryClient;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpEntity;
