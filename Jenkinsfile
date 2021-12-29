@@ -1,4 +1,7 @@
 pipeline {
+  options {
+    buildDiscarder(logRotator(numToKeepStr: '10', artifactNumToKeepStr: '10'))
+  }
   agent {
     docker {
       image 'stainii/portal-web-app-base:jdk-14'
