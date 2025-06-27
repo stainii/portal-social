@@ -5,7 +5,7 @@ import be.stijnhooft.portal.social.dtos.PersonDto;
 import be.stijnhooft.portal.social.dtos.Source;
 import be.stijnhooft.portal.social.services.PersonService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.StringUtils;
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -37,15 +37,15 @@ public class PersonController {
         }
     }
 
-    @RequestMapping(value = "/", method = RequestMethod.POST)
+    @PostMapping("/")
     public ResponseEntity<PersonDto> create(@RequestBody PersonDto person) {
-        if (StringUtils.isEmpty(person.getNewImageContent())) {
+        if (ObjectUtils.isEmpty(person.getNewImageContent())) {
             return ResponseEntity.badRequest().build();
         }
         return ResponseEntity.ok(personService.create(person));
     }
 
-    @RequestMapping(value = "/{id}/", method = RequestMethod.PUT)
+    @PutMapping("/{id}/")
     public PersonDto update(@RequestBody PersonDto person, @PathVariable( "id") Long id) {
         if (!id.equals(person.getId())) {
             throw new IllegalArgumentException("Updating the id is not allowed");
@@ -53,7 +53,7 @@ public class PersonController {
         return personService.update(person);
     }
 
-    @RequestMapping(value = "/{id}/", method = RequestMethod.DELETE)
+    @DeleteMapping("/{id}/")
     public ResponseEntity<Void> delete(@PathVariable("id") Long id) {
         var deleteStatus = personService.delete(id);
         return switch (deleteStatus) {
@@ -62,7 +62,7 @@ public class PersonController {
         };
     }
 
-    @RequestMapping(value = "/{id}/contact/", method = RequestMethod.POST)
+    @PostMapping("/{id}/contact/")
     public ResponseEntity<PersonDto> addContact(@RequestBody ContactDto contact, @PathVariable("id") Long personId) {
         personService.addContact(contact, personId, Source.USER);
         return findById(personId);

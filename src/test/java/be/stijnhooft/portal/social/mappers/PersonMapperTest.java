@@ -3,18 +3,15 @@ package be.stijnhooft.portal.social.mappers;
 import be.stijnhooft.portal.social.dtos.PersonDto;
 import be.stijnhooft.portal.social.dtos.RecurringTaskDto;
 import be.stijnhooft.portal.social.model.Person;
-import be.stijnhooft.portal.social.services.ImageService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class PersonMapperTest {
