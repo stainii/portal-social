@@ -28,7 +28,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
-@ActiveProfiles("local")
+@ActiveProfiles("test")
 @ExtendWith(MockitoExtension.class)
 class RecurringTasksServiceTest {
 
